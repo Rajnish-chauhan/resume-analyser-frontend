@@ -12,6 +12,9 @@ export const resumeApi = {
     const response = await axios.post(`${API_BASE_URL}/analyseAts`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
+    if (response.data.error) {
+  throw new Error(response.data.error);
+}
     
     // Clean up markdown formatting if the LLM wraps the JSON
     let rawString = response.data.atsReport;

@@ -1,11 +1,10 @@
 import { motion } from 'framer-motion';
-import { CheckCircle2, XCircle, FileText, Target } from 'lucide-react';
+import { CheckCircle2, XCircle, FileText, Target, AlertTriangle, Lightbulb } from 'lucide-react';
 
 export default function ResultsBoard({ data }) {
-  // Backend se ye keys aayengi: atsScore, matchedKeyword, missingKeywords, summary
-  const { atsScore, matchedKeyword, missingKeywords, summary } = data;
+  // Naye keys yahan add kiye hain: issue aur suggestion
+  const { atsScore, matchedKeyword, missingKeywords, summary, issue, suggestion } = data;
 
-  // Score ke hisaab se color change karne ka logic
   const getScoreColor = (score) => {
     if (score >= 75) return 'bg-green-100 text-green-700 border-green-200';
     if (score >= 50) return 'bg-yellow-100 text-yellow-700 border-yellow-200';
@@ -28,7 +27,7 @@ export default function ResultsBoard({ data }) {
       </div>
 
       {/* AI Summary */}
-      <div className="mb-8">
+      <div className="mb-6">
         <h3 className="text-lg font-semibold text-slate-700 mb-3 flex items-center gap-2">
           <FileText className="w-5 h-5 text-slate-400" /> Executive Summary
         </h3>
@@ -37,9 +36,31 @@ export default function ResultsBoard({ data }) {
         </p>
       </div>
 
+      {/* NEW: Issue & Suggestion Section */}
+      <div className="grid md:grid-cols-2 gap-6 mb-8">
+        {/* Issues */}
+        <div className="bg-orange-50 p-5 rounded-xl border border-orange-100">
+          <h3 className="text-orange-800 font-semibold mb-2 flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-orange-600" /> Key Issues
+          </h3>
+          <p className="text-orange-700/80 text-sm leading-relaxed">
+            {issue || "No major issues found."}
+          </p>
+        </div>
+
+        {/* Suggestions */}
+        <div className="bg-blue-50 p-5 rounded-xl border border-blue-100">
+          <h3 className="text-blue-800 font-semibold mb-2 flex items-center gap-2">
+            <Lightbulb className="w-5 h-5 text-blue-600" /> Suggestions to Improve
+          </h3>
+          <p className="text-blue-700/80 text-sm leading-relaxed">
+            {suggestion || "Resume looks good, keep it up!"}
+          </p>
+        </div>
+      </div>
+
       {/* Keywords Grid */}
       <div className="grid md:grid-cols-2 gap-6">
-        
         {/* Matched Keywords */}
         <div className="bg-green-50/50 p-6 rounded-xl border border-green-100">
           <h3 className="font-semibold text-green-800 mb-4 flex items-center gap-2">
@@ -75,7 +96,6 @@ export default function ResultsBoard({ data }) {
             )}
           </div>
         </div>
-
       </div>
     </motion.div>
   );
