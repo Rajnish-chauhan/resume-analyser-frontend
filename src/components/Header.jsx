@@ -6,7 +6,7 @@ export default function Header() {
           
           {/* Left-side Text Logo */}
           <span className="font-extrabold text-2xl tracking-tight text-white cursor-pointer">
-            Rajnish<span className="text-fuchsia-300 drop-shadow-sm">Systems</span>
+            𝓡𝒶𝓳𝓃𝓲𝓈𝓱<span className="text-fuchsia-300 drop-shadow-sm">𝒮𝔂𝓈𝓽ℯ𝓶𝓈</span>
           </span>
 
         </div>
