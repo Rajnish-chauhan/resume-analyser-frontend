@@ -1,10 +1,13 @@
 import { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import UploadForm from './components/UploadForm';
-import ResultsBoard from './components/ResultsBoard';
+import ResultsBoard from './components/ResultsBoard'; // Fix typo in import if necessary
+import AdminDashboard from './components/AdminDashboard';
 import { resumeApi } from './components/api';
 
-export default function App() {
+// 1. Create a Home component for your main upload page
+function Home() {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
@@ -46,5 +49,20 @@ export default function App() {
 
       {results && <ResultsBoard data={results} />}
     </Layout>
+  );
+}
+
+// 2. Wrap everything in the Router
+export default function App() {
+  return (
+    <Router>
+      <Routes>
+        {/* Normal User Route */}
+        <Route path="/" element={<Home />} /> 
+        
+        {/* Secure Admin Route */}
+        <Route path="/admin" element={<AdminDashboard />} /> 
+      </Routes>
+    </Router>
   );
 }

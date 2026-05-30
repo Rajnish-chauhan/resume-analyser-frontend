@@ -1,8 +1,20 @@
 import axios from 'axios';
 
 // Update this to match your Spring Boot backend URL
-const API_BASE_URL = 'https://api.resumeanalyser.rajnishsystems.in/api/resume';
+const API_BASE_URL = 'http://localhost:8080/api/resume';
 
+// Add this inside your existing api.js file
+
+export const adminApi = {
+  getAllResumes: async () => {
+    const response = await axios.get(`${API_BASE_URL}/all`);
+    return response.data;
+  },
+  // We don't need an axios call for the PDF itself, the <iframe> will handle the URL directly!
+  getPdfUrl: (gridFsId) => {
+    return `${API_BASE_URL}/view/${gridFsId}`;
+  }
+};
 export const resumeApi = {
   analyzeAts: async (file, jd) => {
     const formData = new FormData();
