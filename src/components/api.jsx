@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Update this to match your Spring Boot backend URL
-const API_BASE_URL = 'http://localhost:8080/api/resume';
+const API_BASE_URL = 'https://resumeanaluser-1.onrender.com/api/resume';
 
 // Add this inside your existing api.js file
 
