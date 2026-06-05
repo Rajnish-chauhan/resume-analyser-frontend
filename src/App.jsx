@@ -32,7 +32,7 @@ function Home() {
     <Layout>
       <div className="text-center mb-10">
         <h2 className="text-4xl font-extrabold text-slate-800 mb-3 tracking-tight">
-          AI Resume Analyser
+         ATS (AI Based Resume Analyzer)
         </h2>
         <p className="text-slate-500 text-lg">
           Compare your skills against job descriptions and beat the ATS.
