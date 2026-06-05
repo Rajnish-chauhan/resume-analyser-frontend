@@ -50,7 +50,7 @@ export default function UploadForm({ onAnalyze, isLoading }) {
           type="submit" disabled={isLoading || !file || !jd}
           className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white font-semibold py-4 rounded-xl transition-all disabled:opacity-70 flex justify-center items-center gap-2 shadow-md"
         >
-          {isLoading ? <><Loader2 className="w-5 h-5 animate-spin" /> Analysing...</> : 'Analyse Resume'}
+          {isLoading ? <><Loader2 className="w-5 h-5 animate-spin" /> Analyzing...</> : 'Analyse Resume'}
         </button>
       </form>
     </motion.div>
