@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Update this to match your Spring Boot backend URL
-const API_BASE_URL = 'https://ats-resume-check-2e6b.onrender.com/api/resume';
+const API_BASE_URL = `${import.meta.env.VITE_URL}/api/resume`;
 
 // Add this inside your existing api.js file
 
