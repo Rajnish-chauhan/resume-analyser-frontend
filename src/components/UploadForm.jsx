@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { UploadCloud, FileText, Loader2 } from 'lucide-react';
 
 export default function UploadForm({ onAnalyze, isLoading }) {
@@ -12,10 +11,7 @@ export default function UploadForm({ onAnalyze, isLoading }) {
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-2xl shadow-xl p-6 md:p-8 border border-slate-100"
-    >
+    <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 border border-slate-100">
       <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
         <FileText className="text-fuchsia-600" /> Upload Details
       </h2>
@@ -48,11 +44,11 @@ export default function UploadForm({ onAnalyze, isLoading }) {
 
         <button
           type="submit" disabled={isLoading || !file || !jd}
-          className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white font-semibold py-4 rounded-xl transition-all disabled:opacity-70 flex justify-center items-center gap-2 shadow-md"
+          className="w-full bg-linear-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white font-semibold py-4 rounded-xl transition-all disabled:opacity-70 flex justify-center items-center gap-2 shadow-md"
         >
           {isLoading ? <><Loader2 className="w-5 h-5 animate-spin" /> Analyzing...</> : 'Analyze Resume'}
         </button>
       </form>
-    </motion.div>
+    </div>
   );
 }

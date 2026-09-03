@@ -1,6 +1,6 @@
 export default function Header() {
   return (
-    <header className="bg-gradient-to-r from-violet-900 via-fuchsia-900 to-violet-900 text-white shadow-xl sticky top-0 z-50">
+    <header className="bg-linear-to-r from-violet-900 via-fuchsia-900 to-violet-900 text-white shadow-xl sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center h-20">
           

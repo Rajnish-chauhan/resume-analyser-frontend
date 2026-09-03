@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { CheckCircle2, XCircle, FileText, Target, AlertTriangle, Lightbulb } from 'lucide-react';
 
 export default function ResultsBoard({ data }) {
@@ -12,10 +11,7 @@ export default function ResultsBoard({ data }) {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-      className="mt-8 bg-white rounded-2xl shadow-xl p-6 md:p-8 border border-slate-100"
-    >
+    <div className="mt-8 bg-white rounded-2xl shadow-xl p-6 md:p-8 border border-slate-100">
       {/* Header & Score Board */}
       <div className="flex flex-col md:flex-row items-center justify-between border-b border-slate-100 pb-6 mb-6 gap-4">
         <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
@@ -97,6 +93,6 @@ export default function ResultsBoard({ data }) {
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
