@@ -1,25 +1,21 @@
 import { useState, useEffect } from 'react';
 import { FileText, Eye, AlertCircle, Briefcase, BarChart3, Lock } from 'lucide-react';
-import Layout from './Layout';
+import Layout from '../components/Layout';
 import { adminApi } from '../api/adminApi';
 
 export default function AdminDashboard() {
-  // --- LOGIN STATE ---
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
 
-  // --- DASHBOARD STATE ---
   const [resumes, setResumes] = useState([]);
   const [selectedDoc, setSelectedDoc] = useState(null); 
   const [activeTab, setActiveTab] = useState('document');
   const [loading, setLoading] = useState(true);
 
-  // --- HANDLE LOGIN ---
   const handleLogin = (e) => {
     e.preventDefault();
-    // Check credentials
     if (username === 'resume_admin' && password === 'resume123') {
       setIsAuthenticated(true);
       setLoginError('');
@@ -28,7 +24,6 @@ export default function AdminDashboard() {
     }
   };
 
-  // --- FETCH DATA ONLY IF LOGGED IN ---
   useEffect(() => {
     if (isAuthenticated) {
       const fetchResumes = async () => {
@@ -53,9 +48,6 @@ export default function AdminDashboard() {
     }
   };
 
-  // ==========================================
-  // VIEW 1: THE LOGIN SCREEN
-  // ==========================================
   if (!isAuthenticated) {
     return (
       <Layout>
@@ -109,9 +101,6 @@ export default function AdminDashboard() {
     );
   }
 
-  // ==========================================
-  // VIEW 2: THE DASHBOARD (Only shows if logged in)
-  // ==========================================
   return (
     <Layout>
       <div className="max-w-7xl mx-auto mb-10 p-4">
@@ -121,9 +110,8 @@ export default function AdminDashboard() {
         </h2>
         <p className="text-slate-500 mb-8">Review candidate resumes, job descriptions, and ATS scores.</p>
         
-        <div className="flex flex-col lg:flex-row gap-6 h-[187.5]">
+        <div className="flex flex-col lg:flex-row gap-6 h-[750px]">
           
-          {/* LEFT SIDE: List of Candidates */}
           <div className="w-full lg:w-1/3 bg-white rounded-2xl shadow-xl border border-slate-100 flex flex-col overflow-hidden">
             <div className="bg-slate-50 p-4 border-b border-slate-200">
               <h3 className="font-bold text-slate-700 flex items-center gap-2">
@@ -131,7 +119,7 @@ export default function AdminDashboard() {
               </h3>
             </div>
             
-            <div className="p-4 overflow-y-auto grow space-y-3">
+            <div className="p-4 overflow-y-auto flex-grow space-y-3">
               {loading && <p className="text-slate-500 text-center mt-4 animate-pulse">Loading database...</p>}
               
               {!loading && resumes.length === 0 && (
@@ -170,10 +158,8 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* RIGHT SIDE: Details & Viewer */}
           <div className="w-full lg:w-2/3 bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden flex flex-col">
             
-            {/* Tab Navigation */}
             <div className="flex border-b border-slate-200 bg-slate-50">
               <button 
                 onClick={() => setActiveTab('document')}
@@ -198,8 +184,7 @@ export default function AdminDashboard() {
               </button>
             </div>
 
-            {/* Content Area */}
-            <div className="grow bg-slate-100 relative overflow-hidden">
+            <div className="flex-grow bg-slate-100 relative overflow-hidden">
               
               {!selectedDoc ? (
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 bg-slate-50">
@@ -209,7 +194,6 @@ export default function AdminDashboard() {
                 </div>
               ) : (
                 <>
-                  {/* TAB 1: Document Viewer */}
                   {activeTab === 'document' && (
                     <div className="h-full w-full">
                       {selectedDoc.fileName?.toLowerCase().includes('.doc') ? (
@@ -235,7 +219,6 @@ export default function AdminDashboard() {
                     </div>
                   )}
 
-                  {/* TAB 2: Job Description */}
                   {activeTab === 'jd' && (
                     <div className="h-full w-full bg-white p-8 overflow-y-auto">
                       <h3 className="text-xl font-bold text-slate-800 mb-4">Target Job Description</h3>
@@ -245,7 +228,6 @@ export default function AdminDashboard() {
                     </div>
                   )}
 
-                  {/* TAB 3: AI Report */}
                   {activeTab === 'report' && (
                     <div className="h-full w-full bg-white p-8 overflow-y-auto">
                       <h3 className="text-xl font-bold text-slate-800 mb-6">ATS Analysis</h3>
@@ -256,7 +238,6 @@ export default function AdminDashboard() {
                         
                         return (
                           <div className="space-y-6">
-                            {/* Score Card */}
                             <div className="flex items-center gap-6 p-6 bg-slate-50 rounded-xl border border-slate-200">
                               <div className={`text-4xl font-extrabold px-6 py-4 rounded-xl border ${report.atsScore >= 75 ? 'bg-green-100 text-green-700 border-green-200' : report.atsScore >= 50 ? 'bg-yellow-100 text-yellow-700 border-yellow-200' : 'bg-red-100 text-red-700 border-red-200'}`}>
                                 {report.atsScore}%
@@ -267,7 +248,6 @@ export default function AdminDashboard() {
                               </div>
                             </div>
 
-                            {/* Summary */}
                             <div>
                               <h4 className="font-bold text-slate-800 mb-2">Executive Summary</h4>
                               <p className="bg-blue-50 p-4 rounded-lg text-blue-800 text-sm leading-relaxed">
@@ -275,7 +255,6 @@ export default function AdminDashboard() {
                               </p>
                             </div>
 
-                            {/* Issues & Suggestions */}
                             <div className="grid grid-cols-2 gap-4">
                               <div className="bg-orange-50 p-4 rounded-lg border border-orange-100">
                                 <h4 className="font-bold text-orange-800 mb-2">Issues Detected</h4>

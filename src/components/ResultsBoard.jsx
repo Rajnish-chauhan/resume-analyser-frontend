@@ -1,7 +1,6 @@
 import { CheckCircle2, XCircle, FileText, Target, AlertTriangle, Lightbulb } from 'lucide-react';
 
 export default function ResultsBoard({ data }) {
-  // Naye keys yahan add kiye hain: issue aur suggestion
   const { atsScore, matchedKeyword, missingKeywords, summary, issue, suggestion } = data;
 
   const getScoreColor = (score) => {
@@ -12,7 +11,6 @@ export default function ResultsBoard({ data }) {
 
   return (
     <div className="mt-8 bg-white rounded-2xl shadow-xl p-6 md:p-8 border border-slate-100">
-      {/* Header & Score Board */}
       <div className="flex flex-col md:flex-row items-center justify-between border-b border-slate-100 pb-6 mb-6 gap-4">
         <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
           <Target className="text-fuchsia-600" /> ATS Analysis Report
@@ -22,7 +20,6 @@ export default function ResultsBoard({ data }) {
         </div>
       </div>
 
-      {/* AI Summary */}
       <div className="mb-6">
         <h3 className="text-lg font-semibold text-slate-700 mb-3 flex items-center gap-2">
           <FileText className="w-5 h-5 text-slate-400" /> Executive Summary
@@ -32,9 +29,7 @@ export default function ResultsBoard({ data }) {
         </p>
       </div>
 
-      {/* NEW: Issue & Suggestion Section */}
       <div className="grid md:grid-cols-2 gap-6 mb-8">
-        {/* Issues */}
         <div className="bg-orange-50 p-5 rounded-xl border border-orange-100">
           <h3 className="text-orange-800 font-semibold mb-2 flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-orange-600" /> Key Issues
@@ -44,7 +39,6 @@ export default function ResultsBoard({ data }) {
           </p>
         </div>
 
-        {/* Suggestions */}
         <div className="bg-blue-50 p-5 rounded-xl border border-blue-100">
           <h3 className="text-blue-800 font-semibold mb-2 flex items-center gap-2">
             <Lightbulb className="w-5 h-5 text-blue-600" /> Suggestions to Improve
@@ -55,9 +49,7 @@ export default function ResultsBoard({ data }) {
         </div>
       </div>
 
-      {/* Keywords Grid */}
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Matched Keywords */}
         <div className="bg-green-50/50 p-6 rounded-xl border border-green-100">
           <h3 className="font-semibold text-green-800 mb-4 flex items-center gap-2">
             <CheckCircle2 className="w-5 h-5 text-green-600" /> Matched Keywords
@@ -75,7 +67,6 @@ export default function ResultsBoard({ data }) {
           </div>
         </div>
 
-        {/* Missing Keywords */}
         <div className="bg-red-50/50 p-6 rounded-xl border border-red-100">
           <h3 className="font-semibold text-red-800 mb-4 flex items-center gap-2">
             <XCircle className="w-5 h-5 text-red-600" /> Missing Keywords
