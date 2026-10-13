@@ -9,11 +9,16 @@ const API_AUTH_URL = `${cleanBase}/api/auth`;
 
 export const adminApi = {
   login: async (username, password) => {
-    const response = await axios.post(`${API_AUTH_URL}/login`, { username, password });
-    if (response.data.success && response.data.token) {
+    const response = await axios.post(`${API_AUTH_URL}/login`, {
+      username: username.trim(),
+      password: password.trim()
+    });
+
+    if (response.data && response.data.success && response.data.token) {
       sessionStorage.setItem('admin_token', response.data.token);
+      return response.data;
     }
-    return response.data;
+    throw new Error(response.data?.message || 'Authentication failed');
   },
 
   logout: async () => {

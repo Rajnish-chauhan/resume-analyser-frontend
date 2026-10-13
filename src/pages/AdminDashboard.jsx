@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { FileText, Eye, AlertCircle, Briefcase, BarChart3, Lock } from 'lucide-react';
+import { FileText, Eye, AlertCircle, Briefcase, BarChart3, Lock, LogOut } from 'lucide-react';
 import Layout from '../components/Layout';
+import ResultsBoard from '../components/ResultsBoard';
 import { adminApi } from '../api/adminApi';
 
 export default function AdminDashboard() {
@@ -8,20 +9,55 @@ export default function AdminDashboard() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const [resumes, setResumes] = useState([]);
-  const [selectedDoc, setSelectedDoc] = useState(null); 
+  const [selectedDoc, setSelectedDoc] = useState(null);
   const [activeTab, setActiveTab] = useState('document');
   const [loading, setLoading] = useState(true);
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    if (username === 'resume_admin' && password === 'resume123') {
+  // Restore authenticated session from sessionStorage
+  useEffect(() => {
+    const token = adminApi.getToken();
+    if (token) {
       setIsAuthenticated(true);
-      setLoginError('');
-    } else {
-      setLoginError('Invalid Username or Password');
     }
+  }, []);
+
+  // Hits backend /api/auth/login directly - NO password in frontend!
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoginError('');
+    setSubmitting(true);
+
+    try {
+      const result = await adminApi.login(username, password);
+      if (result.success) {
+        setIsAuthenticated(true);
+      } else {
+        setLoginError(result.message || 'Invalid credentials.');
+      }
+    } catch (err) {
+      console.error('Login request failed:', err);
+      if (err.response && err.response.status === 401) {
+        setLoginError('Invalid Username or Password (Backend Rejected).');
+      } else if (err.response && err.response.status === 404) {
+        setLoginError('Auth endpoint not found on backend.');
+      } else {
+        setLoginError('Backend connection failed. Make sure backend is running.');
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await adminApi.logout();
+    setIsAuthenticated(false);
+    setResumes([]);
+    setSelectedDoc(null);
+    setUsername('');
+    setPassword('');
   };
 
   useEffect(() => {
@@ -29,9 +65,13 @@ export default function AdminDashboard() {
       const fetchResumes = async () => {
         try {
           const data = await adminApi.getAllResumes();
-          setResumes(data.reverse());
+          setResumes([...data].reverse());
         } catch (error) {
-          console.error("Error fetching resumes:", error);
+          if (error.response && error.response.status === 401) {
+            handleLogout();
+          } else {
+            console.error('Error fetching resume records:', error);
+          }
         } finally {
           setLoading(false);
         }
@@ -40,9 +80,12 @@ export default function AdminDashboard() {
     }
   }, [isAuthenticated]);
 
-  const getAiReport = (jsonString) => {
+  const parseAiReport = (jsonString) => {
     try {
-      return JSON.parse(jsonString);
+      if (typeof jsonString === 'object') return jsonString;
+      let clean = jsonString.trim();
+      if (clean.startsWith('```json')) clean = clean.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+      return JSON.parse(clean);
     } catch (e) {
       return null;
     }
@@ -51,48 +94,49 @@ export default function AdminDashboard() {
   if (!isAuthenticated) {
     return (
       <Layout>
-        <div className="flex justify-center items-center h-[60vh]">
-          <div className="bg-white p-8 rounded-2xl shadow-xl border border-slate-100 max-w-md w-full text-center">
-            <div className="bg-fuchsia-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Lock className="w-8 h-8 text-fuchsia-600" />
+        <div className="flex justify-center items-center h-[55vh]">
+          <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 max-w-md w-full text-center">
+            <div className="bg-slate-100 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Lock className="w-6 h-6 text-slate-700" />
             </div>
-            <h2 className="text-2xl font-bold text-slate-800 mb-2">Admin Portal</h2>
-            <p className="text-slate-500 mb-6">Enter your credentials to access the database.</p>
-            
+            <h2 className="text-xl font-bold text-slate-900 mb-1">Administrative Sign-In</h2>
+            <p className="text-xs text-slate-500 mb-6">Secured by ScoreMyCV backend authorization.</p>
+
             {loginError && (
-              <div className="mb-4 p-3 bg-red-50 text-red-600 border border-red-200 rounded-lg text-sm font-semibold">
+              <div className="mb-4 p-3 bg-rose-50 text-rose-600 border border-rose-200 rounded-lg text-xs font-semibold">
                 {loginError}
               </div>
             )}
 
             <form onSubmit={handleLogin} className="flex flex-col gap-4 text-left">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">Username</label>
-                <input 
-                  type="text" 
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Username</label>
+                <input
+                  type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-fuchsia-500 outline-none"
-                  placeholder="Enter username"
+                  className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 outline-none text-sm"
+                  placeholder="Enter admin username"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">Password</label>
-                <input 
-                  type="password" 
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Password</label>
+                <input
+                  type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-fuchsia-500 outline-none"
-                  placeholder="Enter password"
+                  className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 outline-none text-sm"
+                  placeholder="Enter admin password"
                   required
                 />
               </div>
-              <button 
-                type="submit" 
-                className="mt-2 w-full bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition-colors"
+              <button
+                type="submit"
+                disabled={submitting}
+                className="mt-2 w-full bg-slate-900 text-white font-semibold py-3 rounded-xl hover:bg-slate-800 transition-colors text-sm disabled:opacity-50"
               >
-                Login
+                {submitting ? 'Verifying with Backend...' : 'Authenticate'}
               </button>
             </form>
           </div>
@@ -103,176 +147,155 @@ export default function AdminDashboard() {
 
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto mb-10 p-4">
-        <h2 className="text-3xl font-extrabold text-slate-800 mb-2 flex items-center gap-3">
-          <Briefcase className="text-fuchsia-600 w-8 h-8" />
-          Admin Dashboard
-        </h2>
-        <p className="text-slate-500 mb-8">Review candidate resumes, job descriptions, and ATS scores.</p>
-        
-        <div className="flex flex-col lg:flex-row gap-6 h-[750px]">
-          
-          <div className="w-full lg:w-1/3 bg-white rounded-2xl shadow-xl border border-slate-100 flex flex-col overflow-hidden">
-            <div className="bg-slate-50 p-4 border-b border-slate-200">
-              <h3 className="font-bold text-slate-700 flex items-center gap-2">
-                Uploaded Profiles <span className="bg-fuchsia-100 text-fuchsia-700 px-2 py-0.5 rounded-full text-xs">{resumes.length}</span>
-              </h3>
-            </div>
-            
-            <div className="p-4 overflow-y-auto flex-grow space-y-3">
-              {loading && <p className="text-slate-500 text-center mt-4 animate-pulse">Loading database...</p>}
-              
-              {!loading && resumes.length === 0 && (
-                <div className="text-center mt-10 text-slate-400 flex flex-col items-center">
-                  <AlertCircle className="w-10 h-10 mb-2 opacity-50" />
-                  <p>No resumes found.</p>
-                </div>
-              )}
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+            <Briefcase className="text-fuchsia-600 w-6 h-6" /> Resume Audit Database
+          </h2>
+          <p className="text-xs text-slate-500 mt-1">Review candidate documents, JDs, and parsed evaluation reports.</p>
+        </div>
 
-              {resumes.map((doc) => (
-                <div 
-                  key={doc.id} 
-                  onClick={() => {
-                    setSelectedDoc(doc);
-                    setActiveTab('document'); 
-                  }}
-                  className={`p-4 rounded-xl border transition-all cursor-pointer ${
-                    selectedDoc?.id === doc.id 
-                      ? 'bg-fuchsia-50 border-fuchsia-400 shadow-md ring-1 ring-fuchsia-400' 
-                      : 'bg-white border-slate-200 hover:border-fuchsia-300 hover:shadow-sm'
-                  }`}
-                >
-                  <p className="font-semibold text-slate-800 truncate" title={doc.fileName}>
-                    {doc.fileName || 'Unknown File'}
-                  </p>
-                  <div className="flex justify-between items-center mt-2">
-                    <span className="text-xs font-mono text-slate-400 truncate w-32">
-                      ID: {doc.id.substring(doc.id.length - 6)}
-                    </span>
-                    <button className="flex items-center gap-1 text-xs font-bold text-fuchsia-600 bg-fuchsia-100 px-2 py-1 rounded-md">
-                      <Eye className="w-3 h-3" /> View
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+        <button
+          onClick={handleLogout}
+          className="text-xs font-semibold px-3.5 py-2 rounded-xl border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 transition-all flex items-center gap-1.5"
+        >
+          <LogOut className="w-4 h-4" /> Log Out
+        </button>
+      </div>
+
+      <div className="flex flex-col lg:flex-row gap-6 h-[720px]">
+        <div className="w-full lg:w-1/3 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col overflow-hidden">
+          <div className="bg-slate-50 p-4 border-b border-slate-200 flex items-center justify-between">
+            <h3 className="font-bold text-slate-700 text-xs uppercase tracking-wider">Candidate Profiles</h3>
+            <span className="bg-slate-200 text-slate-700 font-bold px-2 py-0.5 rounded-full text-xs">{resumes.length}</span>
           </div>
 
-          <div className="w-full lg:w-2/3 bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden flex flex-col">
-            
-            <div className="flex border-b border-slate-200 bg-slate-50">
-              <button 
-                onClick={() => setActiveTab('document')}
-                disabled={!selectedDoc}
-                className={`flex-1 py-4 font-semibold text-sm transition-colors flex items-center justify-center gap-2 ${activeTab === 'document' ? 'text-fuchsia-600 border-b-2 border-fuchsia-600 bg-white' : 'text-slate-500 hover:text-slate-700 disabled:opacity-50'}`}
-              >
-                <FileText className="w-4 h-4" /> Resume File
-              </button>
-              <button 
-                onClick={() => setActiveTab('jd')}
-                disabled={!selectedDoc}
-                className={`flex-1 py-4 font-semibold text-sm transition-colors flex items-center justify-center gap-2 ${activeTab === 'jd' ? 'text-fuchsia-600 border-b-2 border-fuchsia-600 bg-white' : 'text-slate-500 hover:text-slate-700 disabled:opacity-50'}`}
-              >
-                <Briefcase className="w-4 h-4" /> Job Description
-              </button>
-              <button 
-                onClick={() => setActiveTab('report')}
-                disabled={!selectedDoc}
-                className={`flex-1 py-4 font-semibold text-sm transition-colors flex items-center justify-center gap-2 ${activeTab === 'report' ? 'text-fuchsia-600 border-b-2 border-fuchsia-600 bg-white' : 'text-slate-500 hover:text-slate-700 disabled:opacity-50'}`}
-              >
-                <BarChart3 className="w-4 h-4" /> AI Report
-              </button>
-            </div>
+          <div className="p-3 overflow-y-auto grow space-y-2">
+            {loading && <p className="text-slate-400 text-center text-xs mt-6">Loading submissions...</p>}
 
-            <div className="flex-grow bg-slate-100 relative overflow-hidden">
-              
-              {!selectedDoc ? (
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 bg-slate-50">
-                  <FileText className="w-16 h-16 mb-4 opacity-30" />
-                  <p className="text-lg font-medium">No Profile Selected</p>
-                  <p className="text-sm mt-1 opacity-70">Click a candidate on the left to review their details.</p>
+            {!loading && resumes.length === 0 && (
+              <div className="text-center mt-12 text-slate-400 flex flex-col items-center">
+                <AlertCircle className="w-8 h-8 mb-2 opacity-40" />
+                <p className="text-xs">No records found.</p>
+              </div>
+            )}
+
+            {resumes.map((doc) => (
+              <div
+                key={doc.id}
+                onClick={() => {
+                  setSelectedDoc(doc);
+                  setActiveTab('document');
+                }}
+                className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
+                  selectedDoc?.id === doc.id
+                    ? 'bg-slate-50 border-slate-900 shadow-sm ring-1 ring-slate-900'
+                    : 'bg-white border-slate-200 hover:border-slate-300'
+                }`}
+              >
+                <p className="font-semibold text-xs text-slate-800 truncate" title={doc.fileName}>
+                  {doc.fileName || 'Untitled File'}
+                </p>
+                <div className="flex justify-between items-center mt-2">
+                  <span className="text-[10px] font-mono text-slate-400 truncate">
+                    ID: {doc.id.substring(doc.id.length - 6)}
+                  </span>
+                  <span className="flex items-center gap-1 text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
+                    <Eye className="w-3 h-3" /> Select
+                  </span>
                 </div>
-              ) : (
-                <>
-                  {activeTab === 'document' && (
-                    <div className="h-full w-full">
-                      {selectedDoc.fileName?.toLowerCase().includes('.doc') ? (
-                        <div className="flex flex-col items-center justify-center h-full bg-white p-10 text-center">
-                          <FileText className="w-20 h-20 text-blue-600 mb-4" />
-                          <h3 className="text-xl font-bold text-slate-800 mb-2">Word Document</h3>
-                          <p className="text-slate-500 mb-6">Browsers cannot display DOCX files inline.</p>
-                          <a 
-                            href={adminApi.getPdfUrl(selectedDoc.gridFsFileId)}
-                            download
-                            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition-colors"
-                          >
-                            Download File
-                          </a>
-                        </div>
-                      ) : (
-                        <iframe 
-                          src={adminApi.getPdfUrl(selectedDoc.gridFsFileId)}
-                          className="w-full h-full border-none bg-white"
-                          title="Document Viewer"
-                        />
-                      )}
-                    </div>
-                  )}
+              </div>
+            ))}
+          </div>
+        </div>
 
-                  {activeTab === 'jd' && (
-                    <div className="h-full w-full bg-white p-8 overflow-y-auto">
-                      <h3 className="text-xl font-bold text-slate-800 mb-4">Target Job Description</h3>
-                      <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 whitespace-pre-wrap text-slate-700 font-mono text-sm leading-relaxed">
-                        {selectedDoc.jobDescription || "No JD provided."}
+        <div className="w-full lg:w-2/3 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+          <div className="flex border-b border-slate-200 bg-slate-50">
+            <button
+              onClick={() => setActiveTab('document')}
+              disabled={!selectedDoc}
+              className={`flex-1 py-3 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 ${
+                activeTab === 'document' ? 'text-slate-900 border-b-2 border-slate-900 bg-white' : 'text-slate-500 hover:text-slate-700 disabled:opacity-40'
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5" /> Resume Document
+            </button>
+            <button
+              onClick={() => setActiveTab('jd')}
+              disabled={!selectedDoc}
+              className={`flex-1 py-3 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 ${
+                activeTab === 'jd' ? 'text-slate-900 border-b-2 border-slate-900 bg-white' : 'text-slate-500 hover:text-slate-700 disabled:opacity-40'
+              }`}
+            >
+              <Briefcase className="w-3.5 h-3.5" /> Target JD
+            </button>
+            <button
+              onClick={() => setActiveTab('report')}
+              disabled={!selectedDoc}
+              className={`flex-1 py-3 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 ${
+                activeTab === 'report' ? 'text-slate-900 border-b-2 border-slate-900 bg-white' : 'text-slate-500 hover:text-slate-700 disabled:opacity-40'
+              }`}
+            >
+              <BarChart3 className="w-3.5 h-3.5" /> Full Audit Report
+            </button>
+          </div>
+
+          <div className="grow bg-slate-100 relative overflow-hidden">
+            {!selectedDoc ? (
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 bg-slate-50">
+                <FileText className="w-12 h-12 mb-3 opacity-30" />
+                <p className="text-sm font-medium">No Candidate Selected</p>
+                <p className="text-xs mt-1 text-slate-400">Select an entry from the left column to view its details.</p>
+              </div>
+            ) : (
+              <>
+                {activeTab === 'document' && (
+                  <div className="h-full w-full">
+                    {selectedDoc.fileName?.toLowerCase().includes('.doc') ? (
+                      <div className="flex flex-col items-center justify-center h-full bg-white p-8 text-center">
+                        <FileText className="w-16 h-16 text-slate-400 mb-3" />
+                        <h4 className="text-base font-bold text-slate-800">Word Processing Document</h4>
+                        <p className="text-xs text-slate-500 mb-5 max-w-sm">DOC/DOCX files cannot be embedded directly in standard browser iframes.</p>
+                        <a
+                          href={adminApi.getPdfUrl(selectedDoc.gridFsFileId)}
+                          download
+                          className="bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2.5 px-5 rounded-xl text-xs transition-colors"
+                        >
+                          Download Raw File
+                        </a>
                       </div>
+                    ) : (
+                      <iframe
+                        src={adminApi.getPdfUrl(selectedDoc.gridFsFileId)}
+                        className="w-full h-full border-none bg-white"
+                        title="Resume Viewer"
+                      />
+                    )}
+                  </div>
+                )}
+
+                {activeTab === 'jd' && (
+                  <div className="h-full w-full bg-white p-6 overflow-y-auto">
+                    <h4 className="text-sm font-bold text-slate-800 mb-3">Job Description Text</h4>
+                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 whitespace-pre-wrap text-slate-700 text-xs leading-relaxed">
+                      {selectedDoc.jobDescription || 'No Job Description text was supplied.'}
                     </div>
-                  )}
+                  </div>
+                )}
 
-                  {activeTab === 'report' && (
-                    <div className="h-full w-full bg-white p-8 overflow-y-auto">
-                      <h3 className="text-xl font-bold text-slate-800 mb-6">ATS Analysis</h3>
-                      
-                      {(() => {
-                        const report = getAiReport(selectedDoc.aiReport);
-                        if (!report) return <p className="text-red-500">Failed to parse AI report.</p>;
-                        
-                        return (
-                          <div className="space-y-6">
-                            <div className="flex items-center gap-6 p-6 bg-slate-50 rounded-xl border border-slate-200">
-                              <div className={`text-4xl font-extrabold px-6 py-4 rounded-xl border ${report.atsScore >= 75 ? 'bg-green-100 text-green-700 border-green-200' : report.atsScore >= 50 ? 'bg-yellow-100 text-yellow-700 border-yellow-200' : 'bg-red-100 text-red-700 border-red-200'}`}>
-                                {report.atsScore}%
-                              </div>
-                              <div>
-                                <h4 className="font-bold text-slate-700 text-lg">Overall Match</h4>
-                                <p className="text-slate-500 text-sm">Based on keyword overlap and context.</p>
-                              </div>
-                            </div>
-
-                            <div>
-                              <h4 className="font-bold text-slate-800 mb-2">Executive Summary</h4>
-                              <p className="bg-blue-50 p-4 rounded-lg text-blue-800 text-sm leading-relaxed">
-                                {report.summary}
-                              </p>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                              <div className="bg-orange-50 p-4 rounded-lg border border-orange-100">
-                                <h4 className="font-bold text-orange-800 mb-2">Issues Detected</h4>
-                                <p className="text-orange-700 text-sm">{report.issue || "None"}</p>
-                              </div>
-                              <div className="bg-green-50 p-4 rounded-lg border border-green-100">
-                                <h4 className="font-bold text-green-800 mb-2">Suggestions</h4>
-                                <p className="text-green-700 text-sm">{report.suggestion || "None"}</p>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
+                {activeTab === 'report' && (
+                  <div className="h-full w-full bg-slate-50 p-6 overflow-y-auto">
+                    {(() => {
+                      const report = parseAiReport(selectedDoc.aiReport);
+                      if (!report) {
+                        return <p className="text-xs text-rose-500">Failed to deserialize JSON report.</p>;
+                      }
+                      return <ResultsBoard data={report} />;
+                    })()}
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FileText, Eye, AlertCircle, Briefcase, BarChart3, Lock, LogOut } from 'lucide-react';
-import Layout from '../components/Layout';
-import ResultsBoard from '../components/ResultsBoard';
+import Layout from './Layout';
+import ResultsBoard from './ResultsBoard';
 import { adminApi } from '../api/adminApi';
 
 export default function AdminDashboard() {
@@ -16,7 +16,6 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('document');
   const [loading, setLoading] = useState(true);
 
-  // Restore authenticated session from sessionStorage
   useEffect(() => {
     const token = adminApi.getToken();
     if (token) {
@@ -24,7 +23,6 @@ export default function AdminDashboard() {
     }
   }, []);
 
-  // Submit credentials to backend API for verification
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoginError('');
@@ -39,9 +37,9 @@ export default function AdminDashboard() {
       }
     } catch (err) {
       if (err.response && err.response.status === 401) {
-        setLoginError('Invalid Username or Password.');
+        setLoginError('Invalid Username or Password (Backend Rejected).');
       } else {
-        setLoginError('Authentication service unreachable. Check backend connection.');
+        setLoginError('Backend connection failed. Make sure backend is running on 8080/8082.');
       }
     } finally {
       setSubmitting(false);
