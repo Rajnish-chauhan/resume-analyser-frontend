@@ -16,7 +16,7 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('document');
   const [loading, setLoading] = useState(true);
 
-  // Preserve active session across refreshes
+  // Restore authenticated session from sessionStorage
   useEffect(() => {
     const token = adminApi.getToken();
     if (token) {
@@ -24,7 +24,7 @@ export default function AdminDashboard() {
     }
   }, []);
 
-  // Secure backend authentication call
+  // Submit credentials to backend API for verification
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoginError('');
@@ -38,7 +38,7 @@ export default function AdminDashboard() {
         setLoginError(result.message || 'Invalid credentials.');
       }
     } catch (err) {
-      if (err.response?.status === 401) {
+      if (err.response && err.response.status === 401) {
         setLoginError('Invalid Username or Password.');
       } else {
         setLoginError('Authentication service unreachable. Check backend connection.');
@@ -64,7 +64,7 @@ export default function AdminDashboard() {
           const data = await adminApi.getAllResumes();
           setResumes([...data].reverse());
         } catch (error) {
-          if (error.response?.status === 401) {
+          if (error.response && error.response.status === 401) {
             handleLogout();
           } else {
             console.error('Error fetching resume records:', error);
@@ -133,7 +133,7 @@ export default function AdminDashboard() {
                 disabled={submitting}
                 className="mt-2 w-full bg-slate-900 text-white font-semibold py-3 rounded-xl hover:bg-slate-800 transition-colors text-sm disabled:opacity-50"
               >
-                {submitting ? 'Verifying...' : 'Authenticate'}
+                {submitting ? 'Verifying with Backend...' : 'Authenticate'}
               </button>
             </form>
           </div>

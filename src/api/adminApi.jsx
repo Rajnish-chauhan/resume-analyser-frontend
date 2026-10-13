@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-// Dynamically resolves API root between localhost:8080 and production backend
 const envUrl = import.meta.env.VITE_URL;
 const rawBase = envUrl && envUrl.trim().length > 0 ? envUrl : 'http://localhost:8080';
 const cleanBase = rawBase.replace(/\/+$/, '');
