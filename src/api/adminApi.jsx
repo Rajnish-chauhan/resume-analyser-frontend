@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// Select API endpoint with automatic localhost fallback for offline development
+// Automatically uses localhost:8080 during 'npm run dev' and analyse.rajnishsystems.in during production build
 const envUrl = import.meta.env.VITE_URL;
 const rawBase = envUrl && envUrl.trim().length > 0 ? envUrl : 'http://localhost:8080';
 const cleanBase = rawBase.replace(/\/+$/, '');
