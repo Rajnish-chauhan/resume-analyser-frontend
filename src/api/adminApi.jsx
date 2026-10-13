@@ -1,6 +1,10 @@
 import axios from 'axios';
 
-const API_BASE_URL = `${import.meta.env.VITE_URL}/api/resume`;
+// Select API endpoint with automatic localhost fallback for offline development
+const envUrl = import.meta.env.VITE_URL;
+const rawBase = envUrl && envUrl.trim().length > 0 ? envUrl : 'http://localhost:8080';
+const cleanBase = rawBase.replace(/\/+$/, '');
+const API_BASE_URL = `${cleanBase}/api/resume`;
 
 export const adminApi = {
   getAllResumes: async () => {
@@ -21,17 +25,21 @@ export const resumeApi = {
     const response = await axios.post(`${API_BASE_URL}/analyseAts`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
-    
+
     if (response.data.error) {
       throw new Error(response.data.error);
     }
-    
-    // Clean up markdown formatting if the LLM wraps the JSON
+
     let rawString = response.data.atsReport;
-    if (rawString.startsWith('```json')) {
-      rawString = rawString.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+    if (typeof rawString === 'string') {
+      if (rawString.startsWith('```json')) {
+        rawString = rawString.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+      } else if (rawString.startsWith('```')) {
+        rawString = rawString.replace(/```\n?/g, '');
+      }
+      return JSON.parse(rawString.trim());
     }
-    
-    return JSON.parse(rawString);
+
+    return rawString;
   }
 };

@@ -19,7 +19,7 @@ export default function Home() {
       setResults(data);
     } catch (err) {
       console.error(err);
-      setError('Failed to analyze the resume. Ensure the Spring Boot backend is running.');
+      setError(err.message || 'Failed to analyze resume. Please verify the backend service is operational.');
     } finally {
       setLoading(false);
     }
@@ -27,19 +27,23 @@ export default function Home() {
 
   return (
     <Layout>
-      <div className="text-center mb-10">
-        <h2 className="text-4xl font-extrabold text-slate-800 mb-3 tracking-tight">
-          ATS (AI Based Resume Analyzer)
-        </h2>
-        <p className="text-slate-500 text-lg">
-          Compare your skills against job descriptions and beat the ATS.
+      <div className="text-center max-w-2xl mx-auto mb-10">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-fuchsia-50 border border-fuchsia-200 text-fuchsia-700 text-xs font-semibold mb-4">
+          <span className="w-2 h-2 rounded-full bg-fuchsia-600 animate-pulse"></span>
+          ScoreMyCV ATS Audit Engine v2.0
+        </div>
+        <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+          Score Your Resume Against Top ATS Filters
+        </h1>
+        <p className="text-slate-500 text-sm sm:text-base mt-3 leading-relaxed">
+          Benchmark your CV against enterprise Applicant Tracking System parsers, uncover missing keywords, and optimize for recruiter conversion.
         </p>
       </div>
 
       <UploadForm onAnalyze={handleAnalyze} isLoading={loading} />
 
       {error && (
-        <div className="mt-6 p-4 bg-red-50 text-red-700 rounded-xl border border-red-200">
+        <div className="mt-6 p-4 bg-rose-50 text-rose-700 rounded-xl border border-rose-200 text-sm">
           {error}
         </div>
       )}
