@@ -1,18 +1,49 @@
 import axios from 'axios';
 
-// Automatically uses localhost:8080 during 'npm run dev' and analyse.rajnishsystems.in during production build
+// Dynamically resolves API root between localhost:8080 and production backend
 const envUrl = import.meta.env.VITE_URL;
 const rawBase = envUrl && envUrl.trim().length > 0 ? envUrl : 'http://localhost:8080';
 const cleanBase = rawBase.replace(/\/+$/, '');
-const API_BASE_URL = `${cleanBase}/api/resume`;
+
+const API_RESUME_URL = `${cleanBase}/api/resume`;
+const API_AUTH_URL = `${cleanBase}/api/auth`;
 
 export const adminApi = {
-  getAllResumes: async () => {
-    const response = await axios.get(`${API_BASE_URL}/all`);
+  login: async (username, password) => {
+    const response = await axios.post(`${API_AUTH_URL}/login`, { username, password });
+    if (response.data.success && response.data.token) {
+      sessionStorage.setItem('admin_token', response.data.token);
+    }
     return response.data;
   },
+
+  logout: async () => {
+    const token = sessionStorage.getItem('admin_token');
+    try {
+      if (token) {
+        await axios.post(`${API_AUTH_URL}/logout`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+    } finally {
+      sessionStorage.removeItem('admin_token');
+    }
+  },
+
+  getToken: () => sessionStorage.getItem('admin_token'),
+
+  getAllResumes: async () => {
+    const token = sessionStorage.getItem('admin_token');
+    const response = await axios.get(`${API_RESUME_URL}/all`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response.data;
+  },
+
   getPdfUrl: (gridFsId) => {
-    return `${API_BASE_URL}/view/${gridFsId}`;
+    return `${API_RESUME_URL}/view/${gridFsId}`;
   }
 };
 
@@ -22,7 +53,7 @@ export const resumeApi = {
     formData.append('file', file);
     formData.append('jd', jd);
 
-    const response = await axios.post(`${API_BASE_URL}/analyseAts`, formData, {
+    const response = await axios.post(`${API_RESUME_URL}/analyseAts`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
 

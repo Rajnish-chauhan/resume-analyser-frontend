@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FileText, Eye, AlertCircle, Briefcase, BarChart3, Lock } from 'lucide-react';
+import { FileText, Eye, AlertCircle, Briefcase, BarChart3, Lock, LogOut } from 'lucide-react';
 import Layout from '../components/Layout';
 import ResultsBoard from '../components/ResultsBoard';
 import { adminApi } from '../api/adminApi';
@@ -9,20 +9,52 @@ export default function AdminDashboard() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const [resumes, setResumes] = useState([]);
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [activeTab, setActiveTab] = useState('document');
   const [loading, setLoading] = useState(true);
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    if (username === 'resume_admin' && password === 'resume123') {
+  // Preserve active session across refreshes
+  useEffect(() => {
+    const token = adminApi.getToken();
+    if (token) {
       setIsAuthenticated(true);
-      setLoginError('');
-    } else {
-      setLoginError('Invalid Administrator credentials');
     }
+  }, []);
+
+  // Secure backend authentication call
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoginError('');
+    setSubmitting(true);
+
+    try {
+      const result = await adminApi.login(username, password);
+      if (result.success) {
+        setIsAuthenticated(true);
+      } else {
+        setLoginError(result.message || 'Invalid credentials.');
+      }
+    } catch (err) {
+      if (err.response?.status === 401) {
+        setLoginError('Invalid Username or Password.');
+      } else {
+        setLoginError('Authentication service unreachable. Check backend connection.');
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await adminApi.logout();
+    setIsAuthenticated(false);
+    setResumes([]);
+    setSelectedDoc(null);
+    setUsername('');
+    setPassword('');
   };
 
   useEffect(() => {
@@ -32,7 +64,11 @@ export default function AdminDashboard() {
           const data = await adminApi.getAllResumes();
           setResumes([...data].reverse());
         } catch (error) {
-          console.error('Error fetching resume records:', error);
+          if (error.response?.status === 401) {
+            handleLogout();
+          } else {
+            console.error('Error fetching resume records:', error);
+          }
         } finally {
           setLoading(false);
         }
@@ -61,7 +97,7 @@ export default function AdminDashboard() {
               <Lock className="w-6 h-6 text-slate-700" />
             </div>
             <h2 className="text-xl font-bold text-slate-900 mb-1">Administrative Sign-In</h2>
-            <p className="text-xs text-slate-500 mb-6">Access restricted to authorized personnel only.</p>
+            <p className="text-xs text-slate-500 mb-6">Secured by ScoreMyCV backend authorization.</p>
 
             {loginError && (
               <div className="mb-4 p-3 bg-rose-50 text-rose-600 border border-rose-200 rounded-lg text-xs font-semibold">
@@ -77,7 +113,7 @@ export default function AdminDashboard() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 outline-none text-sm"
-                  placeholder="Enter administrator username"
+                  placeholder="Enter admin username"
                   required
                 />
               </div>
@@ -88,15 +124,16 @@ export default function AdminDashboard() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 outline-none text-sm"
-                  placeholder="Enter administrator password"
+                  placeholder="Enter admin password"
                   required
                 />
               </div>
               <button
                 type="submit"
-                className="mt-2 w-full bg-slate-900 text-white font-semibold py-3 rounded-xl hover:bg-slate-800 transition-colors text-sm"
+                disabled={submitting}
+                className="mt-2 w-full bg-slate-900 text-white font-semibold py-3 rounded-xl hover:bg-slate-800 transition-colors text-sm disabled:opacity-50"
               >
-                Authenticate
+                {submitting ? 'Verifying...' : 'Authenticate'}
               </button>
             </form>
           </div>
@@ -107,11 +144,20 @@ export default function AdminDashboard() {
 
   return (
     <Layout>
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-          <Briefcase className="text-fuchsia-600 w-6 h-6" /> Resume Audit Database
-        </h2>
-        <p className="text-xs text-slate-500 mt-1">Review candidate documents, JDs, and parsed evaluation reports.</p>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+            <Briefcase className="text-fuchsia-600 w-6 h-6" /> Resume Audit Database
+          </h2>
+          <p className="text-xs text-slate-500 mt-1">Review candidate documents, JDs, and parsed evaluation reports.</p>
+        </div>
+
+        <button
+          onClick={handleLogout}
+          className="text-xs font-semibold px-3.5 py-2 rounded-xl border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 transition-all flex items-center gap-1.5"
+        >
+          <LogOut className="w-4 h-4" /> Log Out
+        </button>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6 h-[720px]">

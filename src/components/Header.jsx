@@ -7,9 +7,7 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           
-          {/* ScoreMyCV Brand & Vector Emblem */}
           <Link to="/" className="flex items-center gap-3.5 group select-none">
-            {/* Custom Modern Vector Logo */}
             <div className="relative w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-500 via-fuchsia-600 to-indigo-700 p-0.5 shadow-md shadow-indigo-950/40 group-hover:scale-105 transition-all duration-300">
               <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center overflow-hidden">
                 <svg
@@ -18,7 +16,6 @@ export default function Header() {
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
                 >
-                  {/* Document Silhouette */}
                   <path
                     d="M6 3.5C6 2.67157 6.67157 2 7.5 2H13.5L18 6.5V20.5C18 21.3284 17.3284 22 16.5 22H7.5C6.67157 22 6 21.3284 6 20.5V3.5Z"
                     stroke="url(#docGrad)"
@@ -27,7 +24,6 @@ export default function Header() {
                     strokeLinejoin="round"
                     className="opacity-90"
                   />
-                  {/* Folded Corner Accent */}
                   <path
                     d="M13.5 2V6.5H18"
                     stroke="url(#docGrad)"
@@ -35,7 +31,6 @@ export default function Header() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
-                  {/* Analytical Gauge & Verification Check */}
                   <path
                     d="M9 13.5L11.5 16L16 10.5"
                     stroke="#38BDF8"
@@ -53,7 +48,6 @@ export default function Header() {
               </div>
             </div>
 
-            {/* Typography */}
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
                 <span className="font-extrabold text-2xl tracking-tight text-white flex items-center">
@@ -69,7 +63,6 @@ export default function Header() {
             </div>
           </Link>
 
-          {/* Discreet Admin Link Styled as a Trust Badge */}
           <div className="flex items-center gap-4">
             <Link
               to="/admin"
